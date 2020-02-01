@@ -1,0 +1,8 @@
+.drag-and-drop-area{
+    width:80%;
+    padding:10px;
+    background-color:#99CCFF;
+    border:3px dashed #CCFFFF;
+    border-radius: 20px;
+    text-align: center;
+}
