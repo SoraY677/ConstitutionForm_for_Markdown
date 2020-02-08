@@ -5,18 +5,21 @@ const categorizeTxt = "    ";
 const nextLayerTxt = "   -";
 
 /**
- * markdown形式の文字の描写位置
+ * markdown形式の文字の描写
  */
+let copyBlock = document.getElementById("copy-block");
+copyBlock.style.display = "none";
 document
 	.getElementById("file-select-bt")
 	.addEventListener("change", function(event) {
 		formatTxt = "";
-		
+		console.log(document
+			.getElementById("file-select-bt").files);
 		let prevDirArray = [];
 		for (let filei = 0; filei < event.target.files.length; filei++) {
 			let file = event.target.files[filei];
 			let relativePath = file.webkitRelativePath;
-			let	cureDirArray = relativePath.split("/");
+			let cureDirArray = relativePath.split("/");
 
 			//層の浅いほうを優先した探索(for)用の数値決め
 			let len =
@@ -28,7 +31,7 @@ document
 			let categorizeStr = "";
 			//階層数を表す添え字
 			let diri = 0;
-			for(; diri < len - 1; diri++){
+			for (; diri < len - 1; diri++) {
 				//階層が違う場合は決定
 				if (prevDirArray[diri] != cureDirArray[diri]) {
 					break;
@@ -36,15 +39,16 @@ document
 					categorizeStr += categorizeTxt;
 				}
 			}
-			for(; diri < cureDirArray.length; diri++){
+			for (; diri < cureDirArray.length; diri++) {
 				formatTxt += categorizeStr + nextLayerTxt;
 				formatTxt += cureDirArray[diri] + "\n";
 				categorizeStr += categorizeTxt;
 			}
 			//次へ
 			prevDirArray = cureDirArray;
-
 		}
+		if(formatTxt === "")copyBlock.style.display = "none";//初期段階では消しておく
+		else copyBlock.style.display = "block";
 		document.getElementById("format-area").innerHTML = formatTxt;
 	});
 
@@ -70,40 +74,46 @@ function copyToClipboard() {
 	return result;
 }
 
-/* */
-// let dragxdropDom = document.getElementById("drag-and-drop-area");
-// dragxdropDom.addEventListener(
-// 	"dragover",
-// 	event => {
-// 		event.preventDefault();
-// 	},
-// 	false
-// );
+/**
+ * ドラッグ＆ドロップ機能 
+ * */
+let dragxdropDom = document.getElementById("drag-and-drop-area");
 
-// let fileInput = document.getElementById("file-select-bt");
-// dragxdropDom.addEventListener(
-// 	"drop",
-// 	event => {
-// 		event.preventDefault();
+async function scanFiles(entry, tmpObject) {
+	switch (true) {
+			case (entry.isDirectory) :
+					const entryReader = entry.createReader();
+					const entries = await new Promise(resolve => {
+							entryReader.readEntries(entries => resolve(entries));
+					});
+					await Promise.all(entries.map(entry => scanFiles(entry, tmpObject)));
+					break;
+			case (entry.isFile) :
+					tmpObject.push(entry.file(function(){
+						return new File(null,entry.fullPath);
+					}));
+					break;
+	}
+}
 
-// 		// Dropされた1つ目のファイルを扱います.
-// 		var file = event.dataTransfer.files[0];
+dragxdropDom.addEventListener("dragover", function(event) {
+	event.stopPropagation();
+  event.preventDefault();
+	event.dataTransfer.dropEffect = 'copy'; 
+});
 
-// 		console.log(file);
-// 		// FileReaderによる読み取り
-// 		var fileReader = new FileReader();
-// 		fileReader.onload = function(event) {
-// 			console.log(event.target.result);
-// 			//AjaxでサーバーにPOST
-// 			var xhr = new XMLHttpRequest();
-// 			xhr.open("GET", "/");
-// 			xhr.setRequestHeader(
-// 				"content-type",
-// 				"application/x-www-form-urlencoded;charset=UTF-8"
-// 			);
-// 			xhr.send("file=" + event.target.result);
-// 		};
-// 		fileReader.readAsText(file);
-// 	},
-// 	false
-// );
+dragxdropDom.addEventListener("drop", async function(event) {
+	event.stopPropagation();
+	event.preventDefault();
+	const items = event.dataTransfer.items;
+  const results = [];
+  const promise = [];
+  for (const item of items) {
+			const entry = item.webkitGetAsEntry();
+			console.log(entry);
+      promise.push(scanFiles(entry, results));
+  }
+  await Promise.all(promise);
+	console.log(results); //テスト表示
+	document.getElementById("file-select-bt").files = results;
+},false);

@@ -10,16 +10,19 @@
     </head>
 
     <body>
-        <div class="dot-block">
+        <div id="drag-and-drop-area" class="dot-block">
             <p>ここにファイルをドラッグ＆ドロップ</p>
             <p>または</p>
-            <label for="file-select-bt">ファイルを選択</label>
+            <label class="press-bt" for="file-select-bt">ファイルを選択</label>
             <input type="file" id="file-select-bt" name="upfile[]" webkitdirectory>
         </div>
 
-        <div class="grey-block">
+        <div id="copy-block" class="grey-block">
             <pre id="format-area"></pre>
-            <button id="copy-bt" class="top-right">コピーする</button>
+            <button id="copy-bt" class="press-bt top-right">
+                <div class="copy-image"></div>
+                <span>copy</span>
+            </button>
         </div>
         <script src="./script.js"></script>
     </body>
