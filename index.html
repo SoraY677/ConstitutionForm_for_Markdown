@@ -3,21 +3,24 @@
 
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport"
-              content="width=device-width, initial-scale=1.0">
-        <meta http-equiv="X-UA-Compatible"
-              content="ie=edge">
-              <link rel="stylesheet" type="text/css" href="./style.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <link rel="stylesheet" type="text/css" href="./style.css">
         <title>DirtoMD</title>
     </head>
 
     <body>
-            <div class="dot-block">
+        <div class="dot-block">
             <p>ここにファイルをドラッグ＆ドロップ</p>
             <p>または</p>
-            <label for="file-select-bt">ファイルを選択</label><input type="file" id="file-select-bt" name="upfile[]" webkitdirectory>
-            </div>
-            <button type="submit" >アップロード</button>
+            <label for="file-select-bt">ファイルを選択</label>
+            <input type="file" id="file-select-bt" name="upfile[]" webkitdirectory>
+        </div>
+
+        <div class="grey-block">
+            <pre id="format-area"></pre>
+            <button id="copy-bt" class="top-right">コピーする</button>
+        </div>
         <script src="./script.js"></script>
     </body>
 
