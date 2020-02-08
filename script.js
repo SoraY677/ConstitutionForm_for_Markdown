@@ -1,23 +1,13 @@
-//markdown形式にしたテキスト
-let formatTxt = "";
+let formatTxt = ""
 
-const categorizeTxt = "    ";
-const nextLayerTxt = "   -";
-
-/**
- * markdown形式の文字の描写
- */
-let copyBlock = document.getElementById("copy-block");
-copyBlock.style.display = "none";
-document
-	.getElementById("file-select-bt")
-	.addEventListener("change", function(event) {
-		formatTxt = "";
-		console.log(document
-			.getElementById("file-select-bt").files);
-		let prevDirArray = [];
-		for (let filei = 0; filei < event.target.files.length; filei++) {
-			let file = event.target.files[filei];
+function createFormatTxt(fileList){
+	const categorizeTxt = "    ";
+	const nextLayerTxt = "-";
+	let formatTxt = "";
+	let prevDirArray = [];
+		for (let filei = 0; filei < fileList.length; filei++) {
+			let file = fileList[filei];
+			
 			let relativePath = file.webkitRelativePath;
 			let cureDirArray = relativePath.split("/");
 
@@ -47,10 +37,24 @@ document
 			//次へ
 			prevDirArray = cureDirArray;
 		}
+	return formatTxt;
+}
+
+/**
+ * markdown形式の文字の描写
+ */
+let copyBlock = document.getElementById("copy-block");
+copyBlock.style.display = "none";
+document
+	.getElementById("file-select-bt")
+	.addEventListener("change", function(event) {
+		console.log(event.target.files);
+		formatTxt = createFormatTxt(event.target.files);
 		if(formatTxt === "")copyBlock.style.display = "none";//初期段階では消しておく
 		else copyBlock.style.display = "block";
 		document.getElementById("format-area").innerHTML = formatTxt;
-	});
+});
+
 
 /**
  * コピーボタンの設定
@@ -60,13 +64,12 @@ function copyToClipboard() {
 	let txtTemp = document.createElement("textarea");
 	txtTemp.setAttribute("id", "copy-target");
 	txtTemp.style.display = "block";
-	txtTemp.textContent = formatTxt;
+	txtTemp.textContent = "```\n" + formatTxt + "```\n";
 	document.body.appendChild(txtTemp);
 
 	let copyTarget = document.getElementById("copy-target");
 
 	copyTarget.select();
-	// クリップボードにコピー
 	var result = document.execCommand("copy");
 
 	document.body.removeChild(txtTemp);
@@ -89,19 +92,17 @@ async function scanFiles(entry, tmpObject) {
 					await Promise.all(entries.map(entry => scanFiles(entry, tmpObject)));
 					break;
 			case (entry.isFile) :
-					tmpObject.push(entry.file(function(){
-						return new File(null,entry.fullPath);
-					}));
+					tmpObject.push({
+						webkitRelativePath:entry.fullPath
+					})
 					break;
 	}
 }
-
 dragxdropDom.addEventListener("dragover", function(event) {
 	event.stopPropagation();
   event.preventDefault();
 	event.dataTransfer.dropEffect = 'copy'; 
-});
-
+},false);
 dragxdropDom.addEventListener("drop", async function(event) {
 	event.stopPropagation();
 	event.preventDefault();
@@ -110,10 +111,12 @@ dragxdropDom.addEventListener("drop", async function(event) {
   const promise = [];
   for (const item of items) {
 			const entry = item.webkitGetAsEntry();
-			console.log(entry);
       promise.push(scanFiles(entry, results));
   }
   await Promise.all(promise);
 	console.log(results); //テスト表示
-	document.getElementById("file-select-bt").files = results;
+	formatTxt = createFormatTxt(results) 
+	if(formatTxt === "")copyBlock.style.display = "none";//初期段階では消しておく
+	else copyBlock.style.display = "block";
+	document.getElementById("format-area").innerHTML = formatTxt;
 },false);
