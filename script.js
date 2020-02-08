@@ -1,23 +1,22 @@
 //markdown形式にしたテキスト
 let formatTxt = "";
 
-//
 const categorizeTxt = "    ";
-const nextLayerTxt  = "   -";
- 
+const nextLayerTxt = "   -";
 
+/**
+ * markdown形式の文字の描写位置
+ */
 document
 	.getElementById("file-select-bt")
 	.addEventListener("change", function(event) {
-		let file = event.target.files[0];
-		let relativePath = file.webkitRelativePath;
-		formatTxt += relativePath.split("/").join('\n' + nextLayerTxt) + "\n";
-		let prevDirArray = relativePath.split("/"); //過去調査中だったディレクトリ構造の配列
-
-		for (let filei = 1; filei < event.target.files.length; filei++) {
-			file = event.target.files[filei];
-			relativePath = file.webkitRelativePath;
-			let cureDirArray = relativePath.split("/"); //現在調査中のディレクトリ構造の配列
+		formatTxt = "";
+		
+		let prevDirArray = [];
+		for (let filei = 0; filei < event.target.files.length; filei++) {
+			let file = event.target.files[filei];
+			let relativePath = file.webkitRelativePath;
+			let	cureDirArray = relativePath.split("/");
 
 			//層の浅いほうを優先した探索(for)用の数値決め
 			let len =
@@ -28,51 +27,48 @@ document
 			//前の調査対象とどれだけ同じ階層にいるかを表す文字
 			let categorizeStr = "";
 			//階層数を表す添え字
-			let diri = 1;
-			//最上位層のディレクトリから順に調べていく
-			for (; diri < len ; diri++) {
-				//違う地点で階層位置を決定
+			let diri = 0;
+			for(; diri < len - 1; diri++){
+				//階層が違う場合は決定
 				if (prevDirArray[diri] != cureDirArray[diri]) {
 					break;
 				} else {
 					categorizeStr += categorizeTxt;
 				}
 			}
-			if (diri < cureDirArray.length) {
+			for(; diri < cureDirArray.length; diri++){
 				formatTxt += categorizeStr + nextLayerTxt;
-				formatTxt += cureDirArray.slice(diri, cureDirArray.length).join('\n' + categorizeTxt +nextLayerTxt);
+				formatTxt += cureDirArray[diri] + "\n";
+				categorizeStr += categorizeTxt;
 			}
-			formatTxt += "\n";
-
 			//次へ
 			prevDirArray = cureDirArray;
+
 		}
-		console.log(formatTxt)
 		document.getElementById("format-area").innerHTML = formatTxt;
 	});
 
-document.getElementById("copy-bt").addEventListener("click",copyToClipboard)
-
+/**
+ * コピーボタンの設定
+ */
+document.getElementById("copy-bt").addEventListener("click", copyToClipboard);
 function copyToClipboard() {
+	let txtTemp = document.createElement("textarea");
+	txtTemp.setAttribute("id", "copy-target");
+	txtTemp.style.display = "block";
+	txtTemp.textContent = formatTxt;
+	document.body.appendChild(txtTemp);
 
-		let txtTemp = document.createElement("textarea");
-		txtTemp.setAttribute("id","copy-target")
-		txtTemp.style.display = "block";
-		txtTemp.textContent = formatTxt;
-		document.body.appendChild(txtTemp)
-		
-			
-		let copyTarget = document.getElementById("copy-target")
-		
-		copyTarget.select();
-		// クリップボードにコピー
-		var result = document.execCommand("copy");
-		
-		document.body.removeChild(txtTemp);
+	let copyTarget = document.getElementById("copy-target");
 
-		return result;
+	copyTarget.select();
+	// クリップボードにコピー
+	var result = document.execCommand("copy");
+
+	document.body.removeChild(txtTemp);
+
+	return result;
 }
-
 
 /* */
 // let dragxdropDom = document.getElementById("drag-and-drop-area");
